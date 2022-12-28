@@ -6,23 +6,15 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 
 "use strict";
 
-/*
-        const inputFolder = core.getInput("input-folder");
-        const uri = core.getInput("uri");
-        const database = core.getInput("database");
-        const collection = core.getInput("collection");
-        const clearCollection = core.getInput("clear-collection");
-
-*/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NoFileOptions = exports.Inputs = void 0;
 var Inputs;
 (function (Inputs) {
-    Inputs["Path"] = "artifact-folder";
+    Inputs["Path"] = "path";
     Inputs["Uri"] = "uri";
     Inputs["Database"] = "database";
     Inputs["Collection"] = "collection";
-    Inputs["KeepCollection"] = "clear-collection";
+    Inputs["KeepCollection"] = "keep-collection";
     Inputs["IfNoFilesFound"] = "if-no-files-found";
 })(Inputs = exports.Inputs || (exports.Inputs = {}));
 var NoFileOptions;
@@ -240,8 +232,10 @@ class MongoUploader {
         this.keepCollection = keepCollection;
     }
     getCollection(client, databaseName, collectionName) {
-        const database = client.db(databaseName);
-        return database.collection(collectionName);
+        return __awaiter(this, void 0, void 0, function* () {
+            const database = client.db(databaseName);
+            return yield database.collection(collectionName);
+        });
     }
     loadJson(path) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -265,21 +259,17 @@ class MongoUploader {
     }
     uploadArtifact(filesToUpload, rootDirectory) {
         return __awaiter(this, void 0, void 0, function* () {
-            const client = new mongodb_1.MongoClient(this.uri);
+            const client = yield mongodb_1.MongoClient.connect(this.uri);
             let failedItems = [];
             try {
-                const collection = this.getCollection(client, this.database, this.collection);
+                const collection = yield this.getCollection(client, this.database, this.collection);
                 if (!collection) {
                     // Todo: should we create the collection instead of failing?
                     core.setFailed(`Collection ${this.collection} does not exist.`);
                 }
-                // Cache index information
-                //const indexInformation = await collection.indexInformation()
-                //let indexDescriptions = 'indexDescriptions' in indexInformation ? indexInformation.indexDescriptions : undefined; 
                 if (!this.keepCollection) {
                     // Todo: instead of calling `deleteMany`, use `drop` instead and create a new collection
                     yield collection.deleteMany({});
-                    //await collection.dropIndexes()
                 }
                 // Process artifact files
                 const uploadPromises = filesToUpload.map((file) => {
@@ -287,16 +277,6 @@ class MongoUploader {
                 });
                 const results = yield Promise.all(uploadPromises);
                 failedItems = results.filter(x => x.status === 'failed').map(x => x.path);
-                /*
-                // Finally, recreate the index on the collection
-          
-                if (indexDescriptions) {
-                  core.debug(
-                    `Recreateing indices with indexDescriptions: ${indexDescriptions}`
-                  )
-                  await collection.createIndexes(indexDescriptions)
-                  core.debug(`Indices succesfully recreated`)
-                }*/
             }
             finally {
                 yield client.close();
