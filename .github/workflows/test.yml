@@ -18,7 +18,13 @@ jobs:
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: ./
+      - name: Local checkout
+        uses: actions/checkout@v2
+        path: 'mongo-import-action'
+      - name: Test action
+        uses: ./
         with:
-          milliseconds: 1000
+          artifact-folder: './test'
+          uri: '${{ secrets.MONGODB_URI }}'
+          database: mydatabase
+          collection: mycollection
