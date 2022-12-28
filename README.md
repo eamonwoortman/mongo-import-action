@@ -24,7 +24,7 @@ steps:
 
 - run: echo "{ foo: bar }" > path/to/artifact/world.json
 
-- uses: actions/mongo-import@v1
+- uses: eamonwoortman/mongo-import-action@0.1
   with:
     path: path/to/artifact/world.json
     uri: '${{ secrets.MONGODB_URI }}'
@@ -36,7 +36,7 @@ steps:
 ### Upload an Entire Directory
 
 ```yaml
-- uses: actions/mongo-import@v1
+- uses: eamonwoortman/mongo-import-action@0.1
   with:
     path: path/to/artifact/
     # ... uri, database, collection
@@ -45,7 +45,7 @@ steps:
 ### Upload using a Wildcard Pattern
 
 ```yaml
-- uses: actions/mongo-import@v1
+- uses: eamonwoortman/mongo-import-action@0.1
   with:
     path: path/**/[abc]rtifac?/*
     # ... uri, database, collection
@@ -54,7 +54,7 @@ steps:
 ### Upload using Multiple Paths and Exclusions
 
 ```yaml
-- uses: actions/mongo-import@v1
+- uses: eamonwoortman/mongo-import-action@0.1
   with:
     path: |
       path/output/bin/
@@ -93,7 +93,7 @@ Use the `keep-collection` flag to prevent it from clearing the collection.
 ```yaml
 steps:
 - uses: actions/checkout@v3
-- uses: actions/mongo-import@v1
+- uses: eamonwoortman/mongo-import-action@0.1
   with:
     path: path/to/artifact/world.json
     keep-collection: true
@@ -107,7 +107,7 @@ steps:
 If a path (or paths), result in no files being found for the artifact, the action will succeed but print out a warning. In certain scenarios it may be desirable to fail the action or suppress the warning. The `if-no-files-found` option allows you to customize the behavior of the action if no files are found:
 
 ```yaml
-- uses: actions/mongo-import@v1
+- uses: eamonwoortman/mongo-import-action@0.1
   with:
     path: path/to/artifact/
     if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
