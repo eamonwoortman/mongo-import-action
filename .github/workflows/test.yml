@@ -20,7 +20,6 @@ jobs:
     steps:
       - name: Local checkout
         uses: actions/checkout@v3
-        path: 'mongo-import-action'
       - name: Test action
         uses: ./
         with:
