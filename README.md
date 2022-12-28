@@ -1,105 +1,125 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
-</p>
+# Mongo-Import-Action v1
 
-# Create a JavaScript Action using TypeScript
+Uploads JSON artifacts from your workflow into an existing MongoDB collection.
 
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
 
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.  
+This action is largely based on [upload-artifact](https://github.com/actions/upload-artifact) and [1password-action](https://github.com/RobotsAndPencils/1password-action). 
 
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+*Mongo-Import-Action* purely created for my own needs, but despite not being actively maintained, PR's are welcome!
 
-## Create an action from this template
+# Warning!
+This action will **clear** the target collection before uploading new documents, unless `keep-collection` is set to `true`.  
 
-Click the `Use this Template` and provide the new repo details for your action
+# Usage
 
-## Code in Main
+See [action.yml](action.yml)
 
-> First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
-
-Install the dependencies  
-```bash
-$ npm install
-```
-
-Build the typescript and package it for distribution
-```bash
-$ npm run build && npm run package
-```
-
-Run the tests :heavy_check_mark:  
-```bash
-$ npm test
-
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
-
-...
-```
-
-## Change action.yml
-
-The action.yml defines the inputs and output for your action.
-
-Update the action.yml with your name, description, inputs and outputs for your action.
-
-See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
-
-## Change the Code
-
-Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
-
-```javascript
-import * as core from '@actions/core';
-...
-
-async function run() {
-  try { 
-      ...
-  } 
-  catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run()
-```
-
-See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/README.md#packages) for the various packages.
-
-## Publish to a distribution branch
-
-Actions are run from GitHub repos so we will checkin the packed dist folder. 
-
-Then run [ncc](https://github.com/zeit/ncc) and push the results:
-```bash
-$ npm run package
-$ git add dist
-$ git commit -a -m "prod dependencies"
-$ git push origin releases/v1
-```
-
-Note: We recommend using the `--license` option for ncc, which will create a license file for all of the production node modules used in your project.
-
-Your action is now published! :rocket: 
-
-See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-
-## Validate
-
-You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml))
+### Upload an Individual File
 
 ```yaml
-uses: ./
-with:
-  milliseconds: 1000
+steps:
+- uses: actions/checkout@v3
+
+- run: mkdir -p path/to/artifact
+
+- run: echo "{ foo: bar }" > path/to/artifact/world.json
+
+- uses: actions/mongo-import@v1
+  with:
+    path: path/to/artifact/world.json
+    uri: '${{ secrets.MONGODB_URI }}'
+    database: mydatabase
+    collection: mycollection
+
 ```
 
-See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
+### Upload an Entire Directory
 
-## Usage:
+```yaml
+- uses: actions/mongo-import@v1
+  with:
+    path: path/to/artifact/
+    # ... uri, database, collection
+```
 
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
+### Upload using a Wildcard Pattern
+
+```yaml
+- uses: actions/mongo-import@v1
+  with:
+    path: path/**/[abc]rtifac?/*
+    # ... uri, database, collection
+```
+
+### Upload using Multiple Paths and Exclusions
+
+```yaml
+- uses: actions/mongo-import@v1
+  with:
+    path: |
+      path/output/bin/
+      path/output/test-results
+      !path/**/*.tmp
+     # ... uri, database, collection
+```
+
+For supported wildcards along with behavior and documentation, see [@actions/glob](https://github.com/actions/toolkit/tree/main/packages/glob) which is used internally to search for files.
+
+If a wildcard pattern is used, the path hierarchy will be preserved after the first wildcard pattern:
+
+```
+path/to/*/directory/foo?.txt =>
+    ∟ path/to/some/directory/foo1.txt
+    ∟ path/to/some/directory/foo2.txt
+    ∟ path/to/other/directory/foo1.txt
+
+would be flattened and uploaded as =>
+    ∟ some/directory/foo1.txt
+    ∟ some/directory/foo2.txt
+    ∟ other/directory/foo1.txt
+```
+
+If multiple paths are provided as input, the least common ancestor of all the search paths will be used as the root directory of the artifact. Exclude paths do not affect the directory structure.
+
+Relative and absolute file paths are both allowed. Relative paths are rooted against the current working directory. Paths that begin with a wildcard character should be quoted to avoid being interpreted as YAML aliases.
+
+The [@actions/artifact](https://github.com/actions/toolkit/tree/main/packages/artifact) package is used internally to handle most of the logic around uploading an artifact. There is extra documentation around upload limitations and behavior in the toolkit repo that is worth checking out.
+
+
+### Keeping existing collection
+By default, mongo-import clears the entire target collection before uploading new documents.
+Use the `keep-collection` flag to prevent it from clearing the collection.
+
+```yaml
+steps:
+- uses: actions/checkout@v3
+- uses: actions/mongo-import@v1
+  with:
+    path: path/to/artifact/world.json
+    keep-collection: true
+    # ... uri, database, collection
+
+```
+
+
+### Customization if no files are found
+
+If a path (or paths), result in no files being found for the artifact, the action will succeed but print out a warning. In certain scenarios it may be desirable to fail the action or suppress the warning. The `if-no-files-found` option allows you to customize the behavior of the action if no files are found:
+
+```yaml
+- uses: actions/mongo-import@v1
+  with:
+    path: path/to/artifact/
+    if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
+    # ... uri, database, collection
+```
+
+## Additional Documentation
+
+See [Storing workflow data as artifacts](https://docs.github.com/en/actions/advanced-guides/storing-workflow-data-as-artifacts) for additional examples and tips.
+
+See extra documentation for the [@actions/artifact](https://github.com/actions/toolkit/blob/main/packages/artifact/docs/additional-information.md) package that is used internally regarding certain behaviors and limitations.
+
+# License
+
+The scripts and documentation in this project are released under the [MIT License](LICENSE).
