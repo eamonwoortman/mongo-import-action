@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
-import { promises as fs } from 'fs'
-import { Collection, MongoClient } from 'mongodb'
+import {promises as fs} from 'fs'
+import {Collection, MongoClient} from 'mongodb'
 
 export interface UploadResponse {
   failedItems: string[]
@@ -29,13 +29,13 @@ export class MongoUploader {
     this.keepCollection = keepCollection
   }
 
-  private async getCollection(
+  private getCollection(
     client: MongoClient,
     databaseName: string,
     collectionName: string
-  ): Promise<Collection> {
+  ): Collection {
     const database = client.db(databaseName)
-    return await database.collection(collectionName)
+    return database.collection(collectionName)
   }
 
   private async loadJson(path: string): Promise<any> {
@@ -58,7 +58,7 @@ export class MongoUploader {
     return {path, status: 'success'}
   }
 
-  public async uploadArtifact(
+  async uploadArtifact(
     filesToUpload: string[],
     rootDirectory: string
   ): Promise<UploadResponse> {
@@ -66,7 +66,7 @@ export class MongoUploader {
     let failedItems: string[] = []
 
     try {
-      const collection = await this.getCollection(
+      const collection = this.getCollection(
         client,
         this.database,
         this.collection
@@ -75,21 +75,21 @@ export class MongoUploader {
         // Todo: should we create the collection instead of failing?
         core.setFailed(`Collection ${this.collection} does not exist.`)
       }
-      
+
       if (!this.keepCollection) {
         // Todo: instead of calling `deleteMany`, use `drop` instead and create a new collection
         await collection.deleteMany({})
       }
 
       // Process artifact files
-      const uploadPromises = filesToUpload.map((file) => {
+      const uploadPromises = filesToUpload.map(async file => {
         return this.uploadFile(collection, file)
-      });
+      })
       const results = await Promise.all(uploadPromises)
       failedItems = results.filter(x => x.status === 'failed').map(x => x.path)
     } finally {
       await client.close()
     }
-    return { failedItems } as UploadResponse
+    return {failedItems} as UploadResponse
   }
 }

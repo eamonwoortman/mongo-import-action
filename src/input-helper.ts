@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
-import { Inputs, NoFileOptions } from './constants'
-import { ImportInputs } from './import-inputs'
+import {Inputs, NoFileOptions} from './constants'
+import {ImportInputs} from './import-inputs'
 
 /**
  * Helper to get all the inputs for the action
@@ -10,10 +10,11 @@ export function getInputs(): ImportInputs {
   const uri = core.getInput(Inputs.Uri, {required: true})
   const database = core.getInput(Inputs.Database, {required: true})
   const collection = core.getInput(Inputs.Collection, {required: true})
-  const keepCollection = core.getBooleanInput(Inputs.KeepCollection, {  })
+  const keepCollection = core.getBooleanInput(Inputs.KeepCollection, {})
 
   const ifNoFilesFound = core.getInput(Inputs.IfNoFilesFound)
-  const noFileBehavior: NoFileOptions = NoFileOptions[ifNoFilesFound as NoFileOptions]
+  const noFileBehavior: NoFileOptions =
+    NoFileOptions[ifNoFilesFound as NoFileOptions]
 
   if (!noFileBehavior) {
     core.setFailed(
@@ -30,7 +31,7 @@ export function getInputs(): ImportInputs {
     uri,
     database,
     collection,
-    keepCollection: keepCollection,
+    keepCollection,
     ifNoFilesFound: noFileBehavior
   } as ImportInputs
 

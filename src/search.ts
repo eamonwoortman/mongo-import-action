@@ -1,9 +1,9 @@
-import { debug, info } from '@actions/core'
+import {debug, info} from '@actions/core'
 import * as glob from '@actions/glob'
-import { stat } from 'fs'
+import {stat} from 'fs'
 import * as path from 'path'
-import { dirname } from 'path'
-import { promisify } from 'util'
+import {dirname} from 'path'
+import {promisify} from 'util'
 const stats = promisify(stat)
 
 export interface SearchResult {
