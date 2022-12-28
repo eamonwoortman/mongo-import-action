@@ -49,8 +49,7 @@ async function run(): Promise<void> {
         inputs.keepCollection
       )
       const uploadResponse = await mongoUploader.uploadArtifact(
-        searchResult.filesToUpload,
-        searchResult.rootDirectory
+        searchResult.filesToUpload
       )
 
       if (uploadResponse.failedItems.length > 0) {

@@ -1,12 +1,3 @@
-export enum Inputs {
-  Path = 'path',
-  Uri = 'uri',
-  Database = 'database',
-  Collection = 'collection',
-  KeepCollection = 'keep-collection',
-  IfNoFilesFound = 'if-no-files-found'
-}
-
 export enum NoFileOptions {
   /**
    * Default. Output a warning but do not fail the action
@@ -22,4 +13,13 @@ export enum NoFileOptions {
    * Do not output any warnings or errors, the action does not fail
    */
   ignore = 'ignore'
+}
+
+export enum Inputs {
+  Path = 'path',
+  Uri = 'uri',
+  Database = 'database',
+  Collection = 'collection',
+  KeepCollection = 'keep-collection',
+  IfNoFilesFound = 'if-no-files-found'
 }

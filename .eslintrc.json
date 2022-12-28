@@ -45,7 +45,11 @@
       "semi": "off",
       "@typescript-eslint/semi": ["error", "never"],
       "@typescript-eslint/type-annotation-spacing": "error",
-      "@typescript-eslint/unbound-method": "error"
+      "@typescript-eslint/unbound-method": "error",
+      // note you must disable the base rule as it can report incorrect errors
+      "no-shadow": "off",
+      "@typescript-eslint/no-shadow": ["error"],
+      "sort-imports": "off"
     },
     "env": {
       "node": true,

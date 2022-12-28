@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import {promises as fs} from 'fs'
-import {Collection, MongoClient} from 'mongodb'
+import {Collection, Document, MongoClient} from 'mongodb'
 
 export interface UploadResponse {
   failedItems: string[]
@@ -38,7 +38,7 @@ export class MongoUploader {
     return database.collection(collectionName)
   }
 
-  private async loadJson(path: string): Promise<any> {
+  private async loadJson(path: string): Promise<unknown> {
     const jsonString = await fs.readFile(path, 'utf8')
     return JSON.parse(jsonString)
   }
@@ -49,19 +49,16 @@ export class MongoUploader {
   ): Promise<UploadResult> {
     try {
       const fileJson = await this.loadJson(path)
-      await collection.insertOne(fileJson)
+      await collection.insertOne(fileJson as Document)
       core.debug(`Successfully uploaded ${path} to collection`)
-    } catch (error: any) {
+    } catch (error: unknown) {
       core.warning(`failed to parse json: ${error}}`)
       return {path, status: 'failed'}
     }
     return {path, status: 'success'}
   }
 
-  async uploadArtifact(
-    filesToUpload: string[],
-    rootDirectory: string
-  ): Promise<UploadResponse> {
+  async uploadArtifact(filesToUpload: string[]): Promise<UploadResponse> {
     const client: MongoClient = await MongoClient.connect(this.uri)
     let failedItems: string[] = []
 
