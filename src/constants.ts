@@ -1,18 +1,10 @@
-/*
-        const inputFolder = core.getInput("input-folder");
-        const uri = core.getInput("uri");
-        const database = core.getInput("database");
-        const collection = core.getInput("collection");
-        const clearCollection = core.getInput("clear-collection");
-
-*/
 
 export enum Inputs {
-    Path = 'artifact-folder',
+    Path = 'path',
     Uri = 'uri',
     Database = 'database',
     Collection = 'collection',
-    KeepCollection = 'clear-collection',
+    KeepCollection = 'keep-collection',
     IfNoFilesFound = 'if-no-files-found',
   }
   

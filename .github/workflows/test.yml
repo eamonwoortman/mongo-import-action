@@ -23,7 +23,9 @@ jobs:
       - name: Test action
         uses: ./
         with:
-          artifact-folder: './test'
+          path: './test'
           uri: '${{ secrets.MONGODB_URI }}'
           database: mydatabase
           collection: mycollection
+          keep-collection: true
+          if-no-files-found: 'error'

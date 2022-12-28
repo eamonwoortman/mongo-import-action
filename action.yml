@@ -1,8 +1,8 @@
 name: 'Mongo import files'
 description: 'Import json files into an existing MongoDB database'
 inputs:
-  input-folder: 
-    description: 'Folder that contains one or more JSON files to import'
+  path: 
+    description: 'A file, directory or wildcard pattern that describes what to upload'
     required: true
     default: '.'
   uri: 
@@ -17,8 +17,8 @@ inputs:
     description: 'Collection name'
     required: true
     default: ''
-  clear-collection: 
-    description: 'Clear the collection before importing new files. (WARNING: THIS DELETES ALL DOCUMENTS IN THE COLLECTION)'
+  keep-collection: 
+    description: 'Do not clear the collection before importing new files.'
     required: false
     default: false
   if-no-files-found:
