@@ -7,16 +7,7 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.NoFileOptions = exports.Inputs = void 0;
-var Inputs;
-(function (Inputs) {
-    Inputs["Path"] = "path";
-    Inputs["Uri"] = "uri";
-    Inputs["Database"] = "database";
-    Inputs["Collection"] = "collection";
-    Inputs["KeepCollection"] = "keep-collection";
-    Inputs["IfNoFilesFound"] = "if-no-files-found";
-})(Inputs = exports.Inputs || (exports.Inputs = {}));
+exports.Inputs = exports.NoFileOptions = void 0;
 var NoFileOptions;
 (function (NoFileOptions) {
     /**
@@ -32,6 +23,15 @@ var NoFileOptions;
      */
     NoFileOptions["ignore"] = "ignore";
 })(NoFileOptions = exports.NoFileOptions || (exports.NoFileOptions = {}));
+var Inputs;
+(function (Inputs) {
+    Inputs["Path"] = "path";
+    Inputs["Uri"] = "uri";
+    Inputs["Database"] = "database";
+    Inputs["Collection"] = "collection";
+    Inputs["KeepCollection"] = "keep-collection";
+    Inputs["IfNoFilesFound"] = "if-no-files-found";
+})(Inputs = exports.Inputs || (exports.Inputs = {}));
 
 
 /***/ }),
@@ -83,7 +83,7 @@ function getInputs() {
         uri,
         database,
         collection,
-        keepCollection: keepCollection,
+        keepCollection,
         ifNoFilesFound: noFileBehavior
     };
     return inputs;
@@ -155,14 +155,14 @@ function run() {
                 }
             }
             else {
-                const s = searchResult.filesToUpload.length === 1 ? "" : "s";
+                const s = searchResult.filesToUpload.length === 1 ? '' : 's';
                 core.info(`With the provided path, there will be ${searchResult.filesToUpload.length} file${s} uploaded`);
                 core.debug(`Root artifact directory is ${searchResult.rootDirectory}`);
                 if (searchResult.filesToUpload.length > 10000) {
                     core.warning(`There are over 10,000 files in this artifact, consider creating an archive before upload to improve the upload performance.`);
                 }
                 const mongoUploader = new mongo_uploader_1.MongoUploader(inputs.uri, inputs.database, inputs.collection, inputs.keepCollection);
-                const uploadResponse = yield mongoUploader.uploadArtifact(searchResult.filesToUpload, searchResult.rootDirectory);
+                const uploadResponse = yield mongoUploader.uploadArtifact(searchResult.filesToUpload);
                 if (uploadResponse.failedItems.length > 0) {
                     core.setFailed(`An error was encountered when uploading. There were ${uploadResponse.failedItems.length} items that failed to upload.`);
                 }
@@ -232,10 +232,8 @@ class MongoUploader {
         this.keepCollection = keepCollection;
     }
     getCollection(client, databaseName, collectionName) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const database = client.db(databaseName);
-            return yield database.collection(collectionName);
-        });
+        const database = client.db(databaseName);
+        return database.collection(collectionName);
     }
     loadJson(path) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -257,12 +255,12 @@ class MongoUploader {
             return { path, status: 'success' };
         });
     }
-    uploadArtifact(filesToUpload, rootDirectory) {
+    uploadArtifact(filesToUpload) {
         return __awaiter(this, void 0, void 0, function* () {
             const client = yield mongodb_1.MongoClient.connect(this.uri);
             let failedItems = [];
             try {
-                const collection = yield this.getCollection(client, this.database, this.collection);
+                const collection = this.getCollection(client, this.database, this.collection);
                 if (!collection) {
                     // Todo: should we create the collection instead of failing?
                     core.setFailed(`Collection ${this.collection} does not exist.`);
@@ -272,9 +270,9 @@ class MongoUploader {
                     yield collection.deleteMany({});
                 }
                 // Process artifact files
-                const uploadPromises = filesToUpload.map((file) => {
+                const uploadPromises = filesToUpload.map((file) => __awaiter(this, void 0, void 0, function* () {
                     return this.uploadFile(collection, file);
-                });
+                }));
                 const results = yield Promise.all(uploadPromises);
                 failedItems = results.filter(x => x.status === 'failed').map(x => x.path);
             }
