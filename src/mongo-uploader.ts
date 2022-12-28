@@ -29,13 +29,13 @@ export class MongoUploader {
     this.keepCollection = keepCollection
   }
 
-  private getCollection(
+  private async getCollection(
     client: MongoClient,
     databaseName: string,
     collectionName: string
-  ): Collection {
+  ): Promise<Collection> {
     const database = client.db(databaseName)
-    return database.collection(collectionName)
+    return await database.collection(collectionName)
   }
 
   private async loadJson(path: string): Promise<any> {
@@ -62,11 +62,11 @@ export class MongoUploader {
     filesToUpload: string[],
     rootDirectory: string
   ): Promise<UploadResponse> {
-    const client: MongoClient = new MongoClient(this.uri)
+    const client: MongoClient = await MongoClient.connect(this.uri)
     let failedItems: string[] = []
 
     try {
-      const collection = this.getCollection(
+      const collection = await this.getCollection(
         client,
         this.database,
         this.collection
