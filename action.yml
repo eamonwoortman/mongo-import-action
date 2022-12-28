@@ -1,11 +1,34 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Mongo import files'
+description: 'Import json files into an existing MongoDB database'
 inputs:
-  milliseconds: # change this
+  input-folder: 
+    description: 'Folder that contains one or more JSON files to import'
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    default: '.'
+  uri: 
+    description: 'MongoDB connection string'
+    required: true
+    default: ''
+  database: 
+    description: 'Database name'
+    required: true
+    default: ''
+  collection: 
+    description: 'Collection name'
+    required: true
+    default: ''
+  clear-collection: 
+    description: 'Clear the collection before importing new files. (WARNING: THIS DELETES ALL DOCUMENTS IN THE COLLECTION)'
+    required: false
+    default: false
+  if-no-files-found:
+    description: >
+      The desired behavior if no files are found using the provided path.
+      Available Options:
+        warn: Output a warning but do not fail the action
+        error: Fail the action with an error message
+        ignore: Do not output any warnings or errors, the action does not fail
+    default: 'warn'
 runs:
   using: 'node16'
   main: 'dist/index.js'
